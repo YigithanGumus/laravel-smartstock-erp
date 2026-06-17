@@ -2,64 +2,55 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\DTOs\ProductDTO;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\V1\ProductRequests\StoreProductRequest;
+use App\Http\Requests\V1\ProductRequests\UpdateProductRequest;
+use App\Services\ProductService;
+use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct(
+        private ProductService $productService
+    ) {}
+
+    public function index(): JsonResponse
     {
-        //
+        return response()->json($this->productService->all());
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function show(int $id): JsonResponse
     {
-        //
+        $product = $this->productService->find($id);
+
+        if (! $product) {
+            return response()->json(['message' => 'Ürün bulunamadı.'], 404);
+        }
+
+        return response()->json($product);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreProductRequest $request): JsonResponse
     {
-        //
+        $dto = ProductDTO::fromRequest($request);
+        $product = $this->productService->create($dto);
+
+        return response()->json($product, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(UpdateProductRequest $request, int $id): JsonResponse
     {
-        //
+        $dto = ProductDTO::fromRequest($request);
+        $product = $this->productService->update($id, $dto);
+
+        return response()->json($product);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(int $id): JsonResponse
     {
-        //
-    }
+        $this->productService->delete($id);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json(null, 204);
     }
 }
